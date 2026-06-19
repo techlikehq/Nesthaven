@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Shield, UserCheck, FileCheck, Lock, AlertTriangle, Headphones } from 'lucide-react';
+import { FileCheck, Lock, AlertTriangle, ShieldCheck, UserCheck, FileText, LockKeyhole, Zap, Scale } from 'lucide-react';
 
 const disputeConversations = [
   {
@@ -20,25 +20,22 @@ const disputeConversations = [
   }
 ];
 
-// Split out Component for Card 5 to isolate states cleanly without re-rendering the whole section
 function ScamAlertVisual() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
 
   useEffect(() => {
-    // 1. Line loads from 0% to 80% instantly over 2 seconds on mount.
     const loadDuration = 2000;
-    
+
     const triggerAlarmTimeout = setTimeout(() => {
-      setIsLoaded(true); // Engages the continuous alarm beeping logic
+      setIsLoaded(true);
     }, loadDuration);
 
-    // 2. Holds the alarm state for 3 minutes (180000ms) before cycling
-    const totalCycleTime = loadDuration + 180000; 
-    
+    const totalCycleTime = loadDuration + 180000;
+
     const cycleTimeout = setTimeout(() => {
       setIsLoaded(false);
-      setResetTrigger(prev => prev + 1); // Triggers re-run loop anchor cleanly
+      setResetTrigger(prev => prev + 1);
     }, totalCycleTime);
 
     return () => {
@@ -49,12 +46,9 @@ function ScamAlertVisual() {
 
   return (
     <div className="w-full max-w-[220px] bg-neutral-950 border border-neutral-800 p-3 space-y-2 font-mono text-[9px] min-h-[76px] flex flex-col justify-between">
-      
-      {/* Header status text nodes */}
       <div className="flex items-center justify-between font-bold font-sans h-3">
         {isLoaded ? (
-          // Continuous smooth fading beep animation triggered only after loading completes
-          <motion.span 
+          <motion.span
             animate={{ opacity: [1, 0.2, 1] }}
             transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
             className="flex items-center gap-1 text-red-500 font-mono text-[9px] tracking-wider"
@@ -62,25 +56,21 @@ function ScamAlertVisual() {
             <AlertTriangle size={10} className="text-red-500" /> ANOMALY DETECTED
           </motion.span>
         ) : (
-          // Neutral scanning statement shown before the first load completes
           <span className="text-neutral-500 font-mono text-[9px] tracking-wider uppercase">
             System Scanning...
           </span>
         )}
-        
-        {/* Sync radar status light indicator */}
         <span className={`text-[7px] ${isLoaded ? 'text-red-500 animate-pulse' : 'text-neutral-600'}`}>
           ●
         </span>
       </div>
 
-      {/* Progress tracking line bar canvas layout */}
       <div className="h-[2px] bg-neutral-900 w-full overflow-hidden relative">
         <motion.div
-          key={resetTrigger} // Refreshes width position on cycle end frames
+          key={resetTrigger}
           initial={{ width: "0%" }}
           animate={{ width: "80%" }}
-          transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }} // Fast cinematic deceleration sweep
+          transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
           className={`h-full ${isLoaded ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-neutral-400'}`}
         />
       </div>
@@ -92,7 +82,6 @@ function ScamAlertVisual() {
   );
 }
 
-// Dispute Resolution Loop Visual (Card 6)
 function DisputeLoopVisual() {
   const [index, setIndex] = useState(0);
 
@@ -130,28 +119,30 @@ function DisputeLoopVisual() {
 
 const features = [
   {
-    num: '01',
+    icon: ShieldCheck,
     title: 'Anti-Double-Sell Protection',
     desc: 'Every property is registered on our blockchain-verified ledger. The same property cannot be rented or sold to two people simultaneously.',
     renderVisual: () => (
       <div className="w-full max-w-[240px] bg-neutral-50 border border-neutral-200/80 p-3 space-y-2 font-mono text-[10px] text-neutral-400">
         <div className="flex justify-between border-b border-neutral-100 pb-1.5 text-neutral-600 font-sans font-semibold">
           <span>LEDGER RECORD</span>
-          <span className="text-emerald-600">VERIFIED</span>
+          <span className="text-emerald-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </span>
         </div>
         <div className="flex items-center gap-2 bg-white p-1.5 border border-neutral-100 shadow-2xs">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <span className="truncate text-neutral-700 font-sans font-medium">Tx_9082... Block Pinned</span>
         </div>
         <div className="flex items-center gap-2 opacity-40 bg-white p-1.5 border border-dashed border-neutral-200">
-          <div className="w-2 h-2 rounded-full bg-neutral-300 shrink-0" />
           <span className="truncate">Duplicate Entry Blocked</span>
         </div>
       </div>
     )
   },
   {
-    num: '02',
+    icon: UserCheck,
     title: 'Verified Agent Network',
     desc: 'Every agent on NestHaven has been background-checked, ID-verified, and licensed. Only genuine professionals handle your transaction.',
     renderVisual: () => (
@@ -172,25 +163,29 @@ const features = [
     )
   },
   {
-    num: '03',
+    icon: FileText,
     title: 'Document Verification',
     desc: 'We verify C of O, deed of assignment, and tenancy agreements before any property goes live. No fake listings.',
     renderVisual: () => (
       <div className="w-full max-w-[220px] space-y-1.5">
-        {['Certificate of Occupancy', 'Deed of Assignment', 'Verified Land Matrix'].map((doc, i) => (
+        {['Certificate of Occupancy', 'Deed of Assignment', 'Verified Land Matrix'].map((doc) => (
           <div key={doc} className="flex items-center justify-between bg-white border border-neutral-200 px-3 py-1.5">
             <div className="flex items-center gap-2">
               <FileCheck size={12} className="text-neutral-400" />
               <span className="text-[11px] font-medium text-neutral-700">{doc}</span>
             </div>
-            <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <span className="text-[9px] font-bold text-emerald-600 tracking-wider uppercase">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </span>
           </div>
         ))}
       </div>
     )
   },
   {
-    num: '04',
+    icon: LockKeyhole,
     title: 'Escrow Payment Protection',
     desc: 'Pay into a secure escrow account. Funds are only released to the landlord after you physically inspect and approve the property.',
     renderVisual: () => (
@@ -213,13 +208,13 @@ const features = [
     )
   },
   {
-    num: '05',
+    icon: Zap,
     title: 'Scam Alert System',
     desc: 'Our AI monitors listings 24/7 for suspicious activity. Flagged listings are suspended instantly and investigated before reinstatement.',
     renderVisual: () => <ScamAlertVisual />
   },
   {
-    num: '06',
+    icon: Scale,
     title: 'Dispute Resolution',
     desc: 'Dedicated support team handles landlord-tenant disputes. We mediate fairly and protect the interests of both parties.',
     renderVisual: () => <DisputeLoopVisual />
@@ -250,14 +245,14 @@ export default function TrustSection() {
 
         {/* Blueprint Infinite Grid Canvas Container */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-t border-l border-dashed border-neutral-300">
-          {features.map(({ num, title, desc, renderVisual }, i) => (
+          {features.map(({ icon: Icon, title, desc, renderVisual }) => (
             <div
               key={title}
               className="relative p-8 md:p-10 bg-transparent border-r border-b border-dashed border-neutral-300 flex flex-col justify-between min-h-[420px] group hover:bg-neutral-100/40 transition-colors duration-300"
             >
-              {/* Index Corner Marker */}
-              <span className="absolute top-4 left-6 font-serif italic text-xs text-amber-600/70 font-medium tracking-wider select-none pointer-events-none">
-                {num}
+              {/* Icon Corner Marker */}
+              <span className="absolute top-4 left-6 text-amber-600/70">
+                <Icon size={23} strokeWidth={1.8} />
               </span>
 
               {/* Central Minimal Wireframe View */}

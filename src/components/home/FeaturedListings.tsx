@@ -12,7 +12,7 @@ import {
 /* ─────────────────────────────────────────────────────────────
    ICON MAP — sharp, 13px, stroke 1.5
 ───────────────────────────────────────────────────────────── */
-const P = { size: 13, className: 'text-neutral-400 shrink-0', strokeWidth: 1.5 };
+const P = { size: 18, className: 'text-neutral-700 shrink-0', strokeWidth: 1.6 };
 
 const SpecIcon = ({ name }: { name: string }) => {
   const icons: Record<string, React.ReactNode> = {
@@ -58,21 +58,21 @@ interface SpecRow {
 }
 
 const SpecTable = ({ rows, title }: { rows: SpecRow[]; title: string }) => (
-  <div className="bg-white border border-neutral-200 shadow-sm text-[11px] font-sans overflow-hidden">
+  <div className="bg-white border border-neutral-200 shadow-sm text-sm font-sans overflow-hidden">
     {rows.map(({ icon, label, value, amber, bold }, i) => (
       <div
         key={label}
-        className={`flex items-start justify-between px-4 py-3.5 hover:bg-neutral-50/70 transition-colors ${i < rows.length - 1 ? 'border-b border-neutral-100' : ''}`}
+        className={`flex items-center justify-between px-4 py-3.5 hover:bg-neutral-50 transition-colors ${i < rows.length - 1 ? 'border-b border-neutral-100' : ''}`}
       >
         {/* Label */}
-        <div className="flex items-center gap-2.5 w-[44%] shrink-0 min-w-0">
+        <div className="flex items-center gap-3 w-[48%] shrink-0 min-w-0">
           <SpecIcon name={icon} />
-          <span className="text-[10.5px] font-semibold tracking-wider uppercase text-neutral-500 leading-tight">
-            {label}
+          <span className="text-[13px] font-medium text-neutral-900 leading-tight">
+            {label.charAt(0) + label.slice(1).toLowerCase().replace(/_/g, ' ')}
           </span>
         </div>
         {/* Value */}
-        <div className={`text-right text-[11.5px] leading-snug w-[56%] ${bold ? 'font-bold text-neutral-900' : amber ? 'font-semibold text-amber-600' : 'font-normal text-neutral-800'}`}>
+        <div className={`text-right text-[13px] leading-snug w-[52%] ${bold ? 'font-bold text-neutral-900' : amber ? 'font-semibold text-amber-600' : 'font-normal text-neutral-600'}`}>
           {value}
         </div>
       </div>
@@ -826,14 +826,14 @@ export default function RealDevListingSection() {
 
   /* ── Shared Section Heading (matches reference: clean sans-serif) ── */
   const SH = ({ label }: { label: string }) => (
-    <h2 className="text-[22px] font-semibold text-neutral-900 tracking-tight mb-3 leading-snug">{label}</h2>
+    <h2 className="text-[22px] font-semibold text-neutral-900 tracking-tight mb-6 leading-snug">{label}</h2>
   );
 
   /* ── Table renderer ── */
   const DataTable = ({ headers, rows }: { headers: string[]; rows: (string | React.ReactNode)[][] }) => (
     <div className="border border-neutral-200 overflow-hidden text-sm">
       <div className="grid bg-neutral-100 border-b border-neutral-200" style={{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }}>
-        {headers.map(h => <div key={h} className="px-4 py-2.5 text-[11px] font-semibold tracking-wider uppercase text-neutral-600">{h}</div>)}
+        {headers.map(h => <div key={h} className="px-6 py-4 text-[12px] font-semibold tracking-wider uppercase text-neutral-700">{h}</div>)}
       </div>
       {rows.map((row, i) => (
         <div key={i} className={`grid border-b border-neutral-100 last:border-0 hover:bg-amber-50/25 ${i % 2 === 0 ? 'bg-white' : 'bg-neutral-50/40'}`}
@@ -878,7 +878,7 @@ export default function RealDevListingSection() {
               <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-t border-neutral-800/80 pt-4 bg-neutral-950/30 -mx-12 px-12 pb-2">
                 <span className="text-[10px] tracking-widest text-neutral-400 uppercase font-mono">[0{idx+1} / 0{ALL_PROPERTY_LISTINGS.length}]</span>
                 <div className="flex items-center gap-4 text-[10px] font-mono tracking-wider uppercase text-neutral-300">
-                  <span className="flex items-center gap-1 text-amber-400 font-bold"><MapPin size={11} /> {property.location.split(',')[0]}</span>
+                  <span className="flex items-center gap-1 text-amber-400 font-bold"><MapPin size={16} /> {property.location.split(',')[0]}</span>
                   <span className="text-neutral-700">•</span>
                   <span className="flex items-center gap-1"><Building2 size={11} className="text-neutral-400" /> {property.category}</span>
                 </div>
@@ -908,7 +908,7 @@ export default function RealDevListingSection() {
               </button>
             </div>
             <div className="absolute bottom-8 left-0 right-0 px-6 md:px-12 z-20">
-              <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-4">
+            <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 bg-[#FAF9F6]">
                 <div className="space-y-1">
                   <div className="bg-amber-500 text-neutral-950 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 inline-block">
                     {selectedProperty.category.toUpperCase()} // DESIGN BLUEPRINT
