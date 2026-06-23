@@ -1,279 +1,184 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router';
-import { MapPin, TrendingUp, ArrowRight, ArrowUpRight, Shield, Zap, Droplets, Bus, Star } from 'lucide-react';
+import {
+  MapPin, TrendingUp, ArrowRight, Droplets, Zap, ShieldCheck,
+  AlertTriangle, FileCheck, Waves, Route, ChevronDown,
+} from 'lucide-react';
 import { neighbourhoods, getScoreLabel } from '../../data/neighbourhoods';
 
-// ── Score bar — refined, minimal ─────────────────────────────────────────────
-function ScoreBar({ value, delay = 0 }: { value: number; delay?: number }) {
-const color = value >= 90 ? '#16a34a' : value >= 75 ? '#d97706' : '#ea580c';
-return (
-<div className="h-[3px] bg-gray-100 rounded-full overflow-hidden">
-<motion.div
-initial={{ width: 0 }}
-whileInView={{ width: `${value}%` }}
-viewport={{ once: true }}
-transition={{ duration: 1.1, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
-style={{ backgroundColor: color }}
-className="h-full rounded-full"
-/>
-</div>
-);
+const slugify = (name: string) => name.toLowerCase().replace(/[\s/]+/g, '-');
+
+function StatRow({ icon: Icon, label, value, suffix }: { icon: any; label: string; value: number; suffix?: string }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <Icon size={12} className="text-neutral-400 shrink-0" strokeWidth={1.8} />
+      <span className="text-[10px] text-neutral-500 w-24 shrink-0">{label}</span>
+      <div className="flex-1 h-[3px] bg-neutral-100 overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          whileInView={{ width: `${value}%` }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="h-full bg-amber-600"
+          style={{ opacity: 0.45 + (value / 100) * 0.55 }}
+        />
+      </div>
+      <span className="text-[10px] font-mono font-semibold text-neutral-700 w-12 text-right">{suffix ?? `${value}%`}</span>
+    </div>
+  );
 }
 
-// ── Rating icon map ──────────────────────────────────────────────────────────
-const ratingIcons: Record<string, React.ReactNode> = {
-security: <Shield size={10} />,
-infrastructure: <Zap size={10} />,
-flooding: <Droplets size={10} />,
-transport: <Bus size={10} />,
-amenities: <Star size={10} />,
-};
+const INITIAL_COUNT = 3;
 
-// ── Score ring ───────────────────────────────────────────────────────────────
-function ScoreRing({ score, color }: { score: number; color: string }) {
-const r = 18;
-const circ = 2 * Math.PI * r;
-const offset = circ - (score / 100) * circ;
-return (
-<div className="relative w-14 h-14 flex items-center justify-center">
-<svg width="56" height="56" className="-rotate-90 absolute inset-0">
-<circle cx="28" cy="28" r={r} fill="none" stroke="#f3f4f6" strokeWidth="3" />
-<motion.circle
-cx="28" cy="28" r={r}
-fill="none"
-stroke={color}
-strokeWidth="3"
-strokeLinecap="round"
-strokeDasharray={circ}
-initial={{ strokeDashoffset: circ }}
-whileInView={{ strokeDashoffset: offset }}
-viewport={{ once: true }}
-transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-/>
-</svg>
-<span className="relative font-bold text-sm" style={{ color }}>{score}</span>
-</div>
-);
-}
-
-// ── Main card ────────────────────────────────────────────────────────────────
-function NeighbourhoodCard({ hood, index }: { hood: any; index: number }) {
-const { label, color } = getScoreLabel(hood.score);
-const ratings = Object.entries(hood.ratings) as [string, number][];
-
-return (
-<motion.div
-initial={{ opacity: 0, y: 28 }}
-whileInView={{ opacity: 1, y: 0 }}
-viewport={{ once: true, margin: '-40px' }}
-transition={{ duration: 0.55, delay: index * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
-className="group relative bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-[0_8px_40px_rgba(0,0,0,0.08)] transition-all duration-400 overflow-hidden flex flex-col"
->
-{/* ── Image ── */}
-<div className="relative h-44 overflow-hidden flex-shrink-0">
-<img
-src={hood.image}
-alt={hood.name}
-className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-/>
-{/* Gradient */}
-<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-{/* Top row — trending badge + score ring */}
-<div className="absolute top-3 left-3 right-3 flex items-start justify-between">
-{hood.trending ? (
-<span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500 rounded-full text-white text-[10px] font-bold uppercase tracking-wider">
-<TrendingUp size={9} /> Hot
-</span>
-) : (
-<div />
-)}
-<div className="bg-white rounded-full shadow-md p-0.5">
-<ScoreRing score={hood.score} color={color} />
-</div>
-</div>
-
-{/* Bottom — name + location */}
-<div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
-<h3 className="font-display font-bold text-white text-lg leading-tight tracking-tight">
-{hood.name}
-</h3>
-<div className="flex items-center gap-1 mt-0.5">
-<MapPin size={10} className="text-white/60" />
-<span className="text-white/60 text-[10px]">{hood.city}, {hood.state}</span>
-</div>
-</div>
-</div>
-
-{/* ── Body ── */}
-<div className="flex flex-col flex-1 p-5">
-
-{/* Status label */}
-<div className="flex items-center justify-between mb-4">
-<span
-className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
-style={{ color, backgroundColor: `${color}15` }}
->
-{label}
-</span>
-<span className="text-[10px] text-gray-400 font-medium">Area Score</span>
-</div>
-
-{/* Ratings */}
-<div className="space-y-2.5 mb-5 flex-1">
-{ratings.map(([key, val], ri) => (
-<div key={key} className="grid grid-cols-[20px_1fr_28px] items-center gap-2.5">
-<span className="text-gray-300 flex justify-center">
-{ratingIcons[key] ?? <span className="w-2 h-2 rounded-full bg-gray-200 inline-block" />}
-</span>
-<ScoreBar value={val} delay={ri * 0.1} />
-<span className="text-[10px] font-mono text-gray-400 text-right">{val}</span>
-</div>
-))}
-</div>
-
-{/* Footer */}
-<div className="flex items-center justify-between pt-4 border-t border-gray-50">
-<div>
-<p className="text-[9px] uppercase tracking-widest text-gray-400 mb-0.5">Avg. Rent</p>
-<p className="text-sm font-bold text-gray-900">
-₦{(hood.avgRentApartment / 1_000_000).toFixed(1)}M
-<span className="text-xs font-normal text-gray-400">/yr</span>
-</p>
-</div>
-<Link
-to={`/listings?neighbourhood=${encodeURIComponent(hood.name)}`}
-className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-gray-900 hover:bg-green-800 px-3 py-2 rounded-lg transition-colors duration-200"
->
-View listings
-<ArrowUpRight size={11} />
-</Link>
-</div>
-</div>
-</motion.div>
-);
-}
-
-// ── Section ──────────────────────────────────────────────────────────────────
 export default function NeighbourhoodSection() {
-const [filter, setFilter] = useState<'all' | 'hot'>('all');
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? neighbourhoods : neighbourhoods.slice(0, INITIAL_COUNT);
+  const hasMore = neighbourhoods.length > INITIAL_COUNT;
 
-const displayed = filter === 'hot'
-? neighbourhoods.filter(h => h.trending)
-: neighbourhoods;
+  return (
+    <section className="py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-return (
-<section className="py-28 bg-[#F9F8F6]">
-<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-14">
+          <div>
+            <p className="text-amber-600 text-xs font-bold tracking-[0.25em] uppercase mb-3">
+              // AREA INTELLIGENCE
+            </p>
+            <h2 className="font-serif font-light text-neutral-900 leading-tight"
+                style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}>
+              Know Before <span className="italic text-neutral-600">You Move</span>
+            </h2>
+            <p className="text-neutral-500 text-sm mt-2 max-w-md">
+              Real drainage, power, and water data for every neighbourhood — not just a score, the full picture.
+            </p>
+          </div>
+          <Link to="/areas" className="flex items-center gap-2 text-amber-600 font-semibold text-sm hover:gap-3 transition-all">
+            View All Areas <ArrowRight size={15} />
+          </Link>
+        </div>
 
-{/* ── Header ── */}
-<div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14">
-<div className="max-w-xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence>
+            {visible.map((hood, i) => {
+              const { label, color } = getScoreLabel(hood.score);
+              const { intelligence: intel } = hood;
 
-{/* Eyebrow */}
-<div className="inline-flex items-center gap-2 mb-4">
-<div className="w-5 h-px bg-green-700" />
-<span className="text-[10px] font-bold uppercase tracking-[0.2em] text-green-700">
-Area Intelligence
-</span>
-</div>
+              return (
+                <motion.div
+                  key={hood.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.4, delay: i < INITIAL_COUNT ? i * 0.08 : (i - INITIAL_COUNT) * 0.06 }}
+                >
+                  <Link
+                    to={`/areas/${slugify(hood.name)}`}
+                    className="block bg-white border border-neutral-200 hover:border-amber-300 hover:shadow-xl hover:shadow-neutral-200/60 transition-all duration-300 overflow-hidden h-full group"
+                  >
+                    <div className="relative h-44 overflow-hidden shrink-0">
+                      <img src={hood.image} alt={hood.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/85 via-neutral-950/10 to-transparent" />
 
-<h2
-className="font-display font-bold text-gray-900 leading-[1.0] tracking-tight mb-4"
-style={{ fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)' }}
->
-Know your neighbourhood<br />
-<span className="text-green-700">before you move in.</span>
-</h2>
+                      {hood.trending && (
+                        <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-1 bg-amber-600 text-white text-[9px] font-bold tracking-widest uppercase">
+                          <TrendingUp size={9} /> Trending
+                        </span>
+                      )}
 
-<p className="text-gray-500 text-sm leading-relaxed max-w-md">
-Every area in Port Harcourt scored across security, infrastructure,
-flood risk, transport links, and amenities — so you move in with
-your eyes open.
-</p>
-</div>
+                      <div className="absolute top-3 right-3 w-11 h-11 rounded-full bg-[#F9F6F0]/95 backdrop-blur-sm flex flex-col items-center justify-center shadow-md">
+                        <span className="font-serif text-base font-bold text-neutral-900 leading-none">{hood.score}</span>
+                      </div>
 
-{/* Controls */}
-<div className="flex items-center gap-3 flex-shrink-0">
-{/* Filter pills */}
-<div className="flex items-center bg-white border border-gray-100 rounded-xl p-1 gap-1">
-{(['all', 'hot'] as const).map(f => (
-<button
-key={f}
-onClick={() => setFilter(f)}
-className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-filter === f
-? 'bg-gray-900 text-white shadow-sm'
-: 'text-gray-500 hover:text-gray-800'
-}`}
->
-{f === 'all' ? 'All Areas' : '🔥 Trending'}
-</button>
-))}
-</div>
+                      <div className="absolute bottom-3 left-4">
+                        <h3 className="font-serif text-xl font-medium text-white leading-tight">{hood.name}</h3>
+                        <p className="flex items-center gap-1 text-[10px] text-white/65 mt-0.5">
+                          <MapPin size={9} /> {hood.city}, {hood.state}
+                        </p>
+                      </div>
+                    </div>
 
-<Link
-to="/areas"
-className="inline-flex items-center gap-2 text-xs font-semibold text-gray-900 border border-gray-200 hover:border-gray-900 px-4 py-2.5 rounded-xl transition-all duration-200 hover:gap-3"
->
-View all <ArrowRight size={13} />
-</Link>
-</div>
-</div>
+                    <div className="p-5">
 
-{/* ── Grid ── */}
-<AnimatePresence mode="wait">
-<motion.div
-key={filter}
-initial={{ opacity: 0 }}
-animate={{ opacity: 1 }}
-exit={{ opacity: 0 }}
-transition={{ duration: 0.25 }}
-className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
->
-{displayed.map((hood, i) => (
-<NeighbourhoodCard key={hood.id} hood={hood} index={i} />
-))}
-</motion.div>
-</AnimatePresence>
+                      <div className="flex items-center justify-between mb-4">
+                        <span
+                          className="text-[9px] font-bold tracking-widest uppercase px-2 py-1 border"
+                          style={{ color, borderColor: `${color}40`, backgroundColor: `${color}0D` }}
+                        >
+                          {label}
+                        </span>
+                        <span className="text-[9px] font-mono text-neutral-400 uppercase tracking-wider">Area Score</span>
+                      </div>
 
-{/* ── Bottom CTA ── */}
-<motion.div
-initial={{ opacity: 0, y: 16 }}
-whileInView={{ opacity: 1, y: 0 }}
-viewport={{ once: true }}
-transition={{ duration: 0.5, delay: 0.2 }}
-className="mt-14 flex flex-col sm:flex-row items-center justify-between gap-6 p-8 bg-white rounded-2xl border border-gray-100"
->
-<div>
-<p className="font-display font-bold text-gray-900 text-lg mb-1">
-Ready to find your dream home?
-</p>
-<p className="text-gray-500 text-sm">
-Contact us for expert insights to any area in Port Harcourt.
-</p>
-</div>
-<div className="flex items-center gap-3 flex-shrink-0">
-<Link
-to="/areas"
-className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors"
->
-Explore Areas
-</Link>
-<Link
-to="/contact"
-className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-800 hover:bg-green-900 text-white text-sm font-semibold rounded-xl transition-colors duration-200"
->
-Contact Sales
-<ArrowUpRight size={14} />
-</Link>
-</div>
-</motion.div>
+                      <div className="border border-neutral-200 bg-neutral-50/60 p-4 mb-4">
+                        <p className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase text-neutral-500 mb-3">
+                          <MapPin size={11} className="text-amber-600" /> Neighbourhood Report
+                        </p>
+                        <div className="space-y-2.5">
+                          <StatRow icon={Droplets} label="Drainage" value={intel.drainage} />
+                          <StatRow icon={Zap} label="Power" value={intel.powerScore} suffix={intel.powerHoursPerDay} />
+                          <StatRow icon={ShieldCheck} label="Security" value={hood.ratings.security} />
+                          <StatRow icon={Route} label="Road Network" value={hood.ratings.transport} />
+                        </div>
 
-</div>
-</section>
-);
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-dashed border-neutral-200">
+                          <span className="flex items-center gap-1.5 text-[10px] text-neutral-500">
+                            <Droplets size={11} className="text-sky-500" /> {intel.waterSupply.source}
+                          </span>
+                          <span className="text-[10px] font-bold text-sky-600">{intel.waterSupply.label}</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-dashed border-neutral-200">
+                          {intel.floodRisk ? (
+                            <span className="inline-flex items-center justify-center gap-1.5 text-[10px] font-bold text-orange-700 bg-orange-50 border border-orange-200 px-3 py-2">
+                              <AlertTriangle size={11} /> Flood Risk
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2">
+                              <Waves size={11} /> No Flooding
+                            </span>
+                          )}
+                          {intel.cOfO && (
+                            <span className="inline-flex items-center justify-center gap-1.5 text-[10px] font-bold text-neutral-600 bg-white border border-neutral-200 px-3 py-2">
+                              <FileCheck size={11} /> C of O
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <div>
+                          <p className="text-[9px] text-neutral-400 uppercase tracking-wider">Avg. Rent</p>
+                          <p className="font-mono text-sm font-bold text-neutral-900">
+                            ₦{(hood.avgRentApartment / 1000000).toFixed(1)}M<span className="text-[10px] font-normal text-neutral-400">/yr</span>
+                          </p>
+                        </div>
+                        <span className="text-xs text-amber-600 font-semibold group-hover:underline">
+                          View report →
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+        {hasMore && (
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={() => setShowAll(v => !v)}
+              className="inline-flex items-center gap-2 px-6 py-3.5 border border-neutral-300 hover:border-neutral-900 text-xs font-bold tracking-widest uppercase text-neutral-700 hover:text-neutral-900 transition-colors"
+            >
+              {showAll ? 'Show Less' : `Show ${neighbourhoods.length - INITIAL_COUNT} More Areas`}
+              <motion.span animate={{ rotate: showAll ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                <ChevronDown size={14} />
+              </motion.span>
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
-

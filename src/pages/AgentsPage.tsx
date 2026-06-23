@@ -1,7 +1,30 @@
 import React, { useState, useMemo } from 'react';
-import { Shield, Star, MessageCircle, ArrowLeft } from 'lucide-react';
+import ChatPanel from '../components/chat/ChatPanel';
+import { Shield, ShieldCheck, Star, MessageCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router';
 import { agents, properties } from '../data/properties';
+
+function AgentsPageChatTrigger({ agent }: { agent: any }) {
+  const [chatOpen, setChatOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setChatOpen(true)}
+        className="inline-flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-white bg-neutral-900 hover:bg-amber-600 px-4 py-2.5 transition-colors duration-300 w-full justify-center"
+      >
+        <MessageCircle size={11} /> Chat Securely
+      </button>
+      <ChatPanel
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        agentId={agent.id}
+        agentName={agent.name}
+        agentPhoto={agent.photo}
+        agentVerified={agent.verified}
+      />
+    </>
+  );
+}
 
 export default function AgentsPage() {
   const [search, setSearch] = useState('');
@@ -62,7 +85,7 @@ export default function AgentsPage() {
                 </div>
                 {agent.verified && (
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-500 flex items-center justify-center">
-                    <Shield size={10} className="text-white" />
+                    <ShieldCheck size={10} className="text-white" />
                   </div>
                 )}
               </div>
@@ -86,14 +109,7 @@ export default function AgentsPage() {
               </div>
 
               <div className="w-full">
-                <a 
-                  href={`https://wa.me/${agent.phone.replace(/\D/g, '')}?text=Hello ${encodeURIComponent(agent.name)}, I found you on NestHaven and I'd like to enquire about a property.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-white bg-neutral-900 hover:bg-amber-600 px-4 py-2.5 transition-colors duration-300 w-full justify-center"
-                >
-                  <MessageCircle size={11} /> WhatsApp
-                </a>
+                <AgentsPageChatTrigger agent={agent} />
               </div>
             </div>
           ))}

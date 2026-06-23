@@ -1,8 +1,10 @@
+import React from 'react'
 import { useState } from 'react';
+import ChatPanel from '../chat/ChatPanel';
 import { Link } from 'react-router';
 import { motion } from 'motion/react';
 import {
-  Bed, Bath, Maximize2, MapPin, Shield, Heart,
+  Bed, Bath, Maximize2, MapPin, ShieldCheck, Heart,
   MessageCircle, Star,
 } from 'lucide-react';
 import { Property, formatPrice } from '../../data/properties';
@@ -14,6 +16,7 @@ interface PropertyCardProps {
 
 export default function PropertyCard({ property, index = 0 }: PropertyCardProps) {
   const [liked, setLiked] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   const scoreColor =
@@ -25,10 +28,6 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
     property.listingType === 'Sale' ? 'bg-brand-700 text-white' :
     property.listingType === 'Shortlet' ? 'bg-amber-500 text-white' :
     'bg-sky-600 text-white';
-
-  const whatsappMsg = encodeURIComponent(
-    `Hello ${property.agent.name}, I'm interested in: ${property.title} (${formatPrice(property.price, property.listingType)}). Is it still available?`
-  );
 
   return (
     <motion.div
@@ -52,22 +51,19 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
           </div>
         )}
 
-        {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-        {/* Top badges */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${listingBadgeColor}`}>
             {property.listingType}
           </span>
           {property.verified && (
             <span className="flex items-center gap-1 px-2 py-1 bg-white/95 rounded-lg text-xs font-semibold text-green-700">
-              <Shield size={10} /> Verified
+              <ShieldCheck size={10} /> Verified
             </span>
           )}
         </div>
 
-        {/* Like button */}
         <button
           onClick={() => setLiked(v => !v)}
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-sm transition-all hover:scale-110"
@@ -78,13 +74,11 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
           />
         </button>
 
-        {/* Neighbourhood score */}
         <div className={`absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold ${scoreColor} bg-white/95`}>
           <Star size={10} className="fill-current" />
           {property.neighbourhoodScore}
         </div>
 
-        {/* Status if not available */}
         {property.status !== 'Available' && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="px-4 py-2 bg-white rounded-xl font-semibold text-gray-800">
@@ -96,7 +90,6 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
 
       {/* Content */}
       <div className="p-4">
-        {/* Price */}
         <div className="flex items-start justify-between mb-2">
           <div>
             <p className="font-display font-semibold text-xl text-brand-900 leading-tight">
@@ -113,18 +106,15 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
           </span>
         </div>
 
-        {/* Title */}
         <h3 className="font-semibold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">
           {property.title}
         </h3>
 
-        {/* Location */}
         <div className="flex items-center gap-1 text-xs text-gray-400 mb-3">
           <MapPin size={11} />
           <span className="truncate">{property.neighbourhood}, {property.city}</span>
         </div>
 
-        {/* Stats */}
         <div className="flex items-center gap-4 text-xs text-gray-500 py-3 border-t border-gray-50">
           <span className="flex items-center gap-1">
             <Bed size={13} className="text-gray-400" />
@@ -155,23 +145,20 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
               <p className="text-xs font-medium text-gray-700 leading-none">{property.agent.name}</p>
               {property.agent.verified && (
                 <p className="text-[10px] text-green-600 mt-0.5 flex items-center gap-0.5">
-                  <Shield size={8} /> Verified Agent
+                  <ShieldCheck size={8} /> Verified Agent
                 </p>
               )}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <a
-              href={`https://wa.me/${property.agent.phone.replace(/\D/g, '')}?text=${whatsappMsg}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-semibold transition-colors"
-              onClick={e => e.stopPropagation()}
+            <button
+              onClick={e => { e.stopPropagation(); e.preventDefault(); setChatOpen(true); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold transition-colors"
             >
               <MessageCircle size={12} />
-              WhatsApp
-            </a>
+              Chat
+            </button>
             <Link
               to={`/property/${property.id}`}
               className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-lg text-xs font-semibold transition-colors"
@@ -181,6 +168,17 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
           </div>
         </div>
       </div>
+
+      <ChatPanel
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        agentId={property.agent.id}
+        agentName={property.agent.name}
+        agentPhoto={property.agent.photo}
+        agentVerified={property.agent.verified}
+        propertyId={property.id}
+        propertyTitle={property.title}
+      />
     </motion.div>
   );
 }

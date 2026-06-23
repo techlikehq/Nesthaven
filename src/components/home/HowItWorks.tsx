@@ -35,7 +35,7 @@ const steps = [
   {
     number: '02',
     title: 'Verify & Inspect',
-    desc: 'Connect directly with our verified agents via WhatsApp. Book an inspection. We confirm the property is available and legitimate before you pay.',
+    desc: 'Connect directly with our verified agents through secure in-app chat. Book an inspection. We confirm the property is available and legitimate before you pay.',
     renderVisual: () => (
       <div className="w-full max-w-[200px] flex flex-col gap-1.5 font-mono text-[9px]">
         <div className="bg-neutral-950 text-neutral-300 p-2 border border-neutral-800 rounded-none self-start max-w-[85%] leading-normal">

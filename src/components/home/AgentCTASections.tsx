@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ChatPanel from '../chat/ChatPanel';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
-import { Shield, Star, MessageCircle, ArrowRight, Home, Calculator, Bell } from 'lucide-react';
+import { Shield, ShieldCheck, Star, MessageCircle, ArrowRight, Home, Calculator, Bell } from 'lucide-react';
 import { agents } from '../../data/properties';
+
+/* ── Per-agent chat trigger (own state so multiple cards don't conflict) ── */
+function AgentChatTrigger({ agent }: { agent: any }) {
+  const [chatOpen, setChatOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setChatOpen(true)}
+        className="flex items-center justify-center gap-2 w-full py-2.5 bg-neutral-900 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold transition-colors"
+      >
+        <MessageCircle size={13} /> Chat Securely
+      </button>
+      <ChatPanel
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        agentId={agent.id}
+        agentName={agent.name}
+        agentPhoto={agent.photo}
+        agentVerified={agent.verified}
+      />
+    </>
+  );
+}
 
 /* ── AGENT SECTION ── */
 export function AgentSection() {
@@ -45,7 +69,7 @@ export function AgentSection() {
                 />
                 {agent.verified && (
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-brand-700 rounded-full flex items-center justify-center">
-                    <Shield size={11} className="text-white" />
+                    <ShieldCheck size={11} className="text-white" />
                   </div>
                 )}
               </div>
@@ -61,15 +85,7 @@ export function AgentSection() {
                 <span className="text-gray-200">|</span>
                 <span>{agent.deals} deals</span>
               </div>
-
-              <a
-                href={`https://wa.me/${agent.phone.replace(/\D/g, '')}?text=Hello ${encodeURIComponent(agent.name)}, I found you on NestHaven and I'd like to enquire about a property.`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-semibold transition-colors"
-              >
-                <MessageCircle size={13} /> WhatsApp
-              </a>
+              <AgentChatTrigger agent={agent} />
             </motion.div>
           ))}
         </div>
